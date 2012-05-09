@@ -9,7 +9,7 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class Test3 {
+public class Test4 {
   public static void main( String[] args ) throws InterruptedException {
     int width = 640;
     int height = 480;
@@ -33,8 +33,6 @@ public class Test3 {
 
     gl.glMatrixMode( OiSGL.GL_PROJECTION );
     gl.glLoadIdentity();
-    // gl.glOrtho( aspect * -10.0, aspect * 10.0, -10.0, 10.0, -10.0, 10.0 );
-    // gl.glFrustum( aspect * -10.0, aspect * 10.0, -10.0, 10.0, 50.0, 500.0 );
     gl.gluPerspective( 40.0, aspect, 10.0, 100.0 );
 
     double degrees = 0.0;
@@ -44,9 +42,41 @@ public class Test3 {
 
     List< Vector3 > vectors = new LinkedList< Vector3 >();
 
-    for ( int i = 0; i < 10000; i++ ) {
-      vectors.add( new Vector3( Math.random(), Math.random(), Math.random() ) );
-    }
+    // Top
+    vectors.add( new Vector3( 1.0, 1.0, 0.0 ) );
+    vectors.add( new Vector3( 0.0, 1.0, 0.0 ) );
+    vectors.add( new Vector3( 0.0, 1.0, 1.0 ) );
+    vectors.add( new Vector3( 1.0, 1.0, 1.0 ) );
+
+    // Bottom
+    vectors.add( new Vector3( 1.0, 0.0, 1.0 ) );
+    vectors.add( new Vector3( 0.0, 0.0, 1.0 ) );
+    vectors.add( new Vector3( 0.0, 0.0, 0.0 ) );
+    vectors.add( new Vector3( 1.0, 0.0, 0.0 ) );
+
+    // Front
+    vectors.add( new Vector3( 1.0, 1.0, 1.0 ) );
+    vectors.add( new Vector3( 0.0, 1.0, 1.0 ) );
+    vectors.add( new Vector3( 0.0, 0.0, 1.0 ) );
+    vectors.add( new Vector3( 1.0, 0.0, 1.0 ) );
+
+    // Back
+    vectors.add( new Vector3( 1.0, 0.0, 0.0 ) );
+    vectors.add( new Vector3( 0.0, 0.0, 0.0 ) );
+    vectors.add( new Vector3( 0.0, 1.0, 0.0 ) );
+    vectors.add( new Vector3( 1.0, 1.0, 0.0 ) );
+
+    // Left
+    vectors.add( new Vector3( 0.0, 1.0, 1.0 ) );
+    vectors.add( new Vector3( 0.0, 1.0, 0.0 ) );
+    vectors.add( new Vector3( 0.0, 0.0, 0.0 ) );
+    vectors.add( new Vector3( 0.0, 0.0, 1.0 ) );
+
+    // Right
+    vectors.add( new Vector3( 1.0, 1.0, 0.0 ) );
+    vectors.add( new Vector3( 1.0, 1.0, 1.0 ) );
+    vectors.add( new Vector3( 1.0, 0.0, 1.0 ) );
+    vectors.add( new Vector3( 1.0, 0.0, 0.0 ) );
 
     while ( true ) {
       gl.glClear( OiSGL.GL_COLOR_BUFFER_BIT | OiSGL.GL_DEPTH_BUFFER_BIT );
@@ -54,22 +84,29 @@ public class Test3 {
       gl.glMatrixMode( OiSGL.GL_MODELVIEW );
       gl.glLoadIdentity();
       gl.glTranslate( 0.0, 0.0, -50.0 );
-
       gl.glRotate( 0.2 * degrees, 1.0, 0.0, 0.0 );
       gl.glRotate( 0.4 * degrees, 0.0, 1.0, 0.0 );
       gl.glRotate( 0.8 * degrees, 0.0, 0.0, 1.0 );
-      gl.glTranslate( -5.0, -5.0, -5.0 );
 
       degrees += 1.0;
 
-      gl.glBegin( OiSGL.GL_LINES );
+      gl.glPushMatrix();
+
+      gl.glScale( 8.0, 8.0, 8.0 );
+      gl.glTranslate( -0.5, -0.5, -0.5 );
+
+      gl.glBegin( OiSGL.GL_QUADS );
 
       for ( Vector3 vector : vectors ) {
         gl.glColor( vector.x(), vector.y(), vector.z() );
-        gl.glVertex3( 10.0 * vector.x(), 10.0 * vector.y(), 10.0 * vector.z() );
+        gl.glVertex3( vector.x(), vector.y(), vector.z() );
       }
 
       gl.glEnd();
+
+      gl.glPopMatrix();
+
+      gl.glTranslate( -5.0, -5.0, -5.0 );
 
       gl.glBegin( OiSGL.GL_LINES );
 

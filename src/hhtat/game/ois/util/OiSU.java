@@ -9,6 +9,10 @@ public class OiSU {
     return ( min <= value ) && ( value <= max );
   }
 
+  public static boolean isInRange( double value, double min, double max ) {
+    return ( min <= value ) && ( value <= max );
+  }
+
   public static int clamp( int value, int min, int max ) {
     return value <= min ? min : value >= max ? max : value;
   }

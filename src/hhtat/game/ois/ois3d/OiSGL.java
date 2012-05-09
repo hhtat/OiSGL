@@ -38,7 +38,6 @@ public class OiSGL {
   private Stack< Transformation > modelViewMatrixStack;
 
   private Transformation currentMatrix;
-  private Stack< Transformation > currentMatrixStack;
 
   private Vector3 currentColor;
 
@@ -75,7 +74,6 @@ public class OiSGL {
       this.modelViewMatrixStack = new Stack< Transformation >();
 
       this.currentMatrix = this.modelViewMatrix;
-      this.currentMatrixStack = this.modelViewMatrixStack;
     }
 
     {
@@ -131,11 +129,9 @@ public class OiSGL {
     switch ( mode ) {
       case GL_MODELVIEW:
         this.currentMatrix = this.modelViewMatrix;
-        this.currentMatrixStack = this.modelViewMatrixStack;
         break;
       case GL_PROJECTION:
         this.currentMatrix = this.projectionMatrix;
-        this.currentMatrixStack = this.projectionMatrixStack;
         break;
       default:
         throw new IllegalArgumentException( "invalid mode" );
@@ -147,8 +143,13 @@ public class OiSGL {
       throw new IllegalStateException( "glEnd has not be called for last call to glBegin" );
     }
 
-    this.currentMatrixStack.push( this.currentMatrix );
-    this.currentMatrix = this.currentMatrix.duplicate();
+    if ( this.currentMatrix == this.modelViewMatrix ) {
+      this.modelViewMatrixStack.push( this.modelViewMatrix );
+      this.currentMatrix = this.modelViewMatrix = this.modelViewMatrix.duplicate();
+    } else if ( this.currentMatrix == this.projectionMatrix ) {
+      this.projectionMatrixStack.push( this.projectionMatrix );
+      this.currentMatrix = this.projectionMatrix = this.projectionMatrix.duplicate();
+    }
   }
 
   public void glPopMatrix() {
@@ -156,7 +157,19 @@ public class OiSGL {
       throw new IllegalStateException( "glEnd has not be called for last call to glBegin" );
     }
 
-    this.currentMatrix = this.currentMatrixStack.pop();
+    if ( this.currentMatrix == this.modelViewMatrix ) {
+      if ( this.modelViewMatrixStack.isEmpty() ) {
+        throw new IllegalStateException( "no more matrices to pop from modelview stack" );
+      }
+
+      this.currentMatrix = this.modelViewMatrix = this.modelViewMatrixStack.pop();
+    } else if ( this.currentMatrix == this.projectionMatrix ) {
+      if ( this.projectionMatrixStack.isEmpty() ) {
+        throw new IllegalStateException( "no more matrices to pop from projection stack" );
+      }
+
+      this.currentMatrix = this.projectionMatrix = this.projectionMatrixStack.pop();
+    }
   }
 
   public void glLoadIdentity() {
@@ -392,8 +405,8 @@ public class OiSGL {
           this.currentTransformation.transform( c );
           this.currentTransformation.transform( d );
 
-          this.drawer.drawTriangle( a, aColor, b, bColor, dColor, cColor );
-          this.drawer.drawTriangle( c, cColor, d, dColor, aColor, aColor );
+          this.drawer.drawTriangle( a, aColor, b, bColor, c, cColor );
+          this.drawer.drawTriangle( c, cColor, d, dColor, a, aColor );
         }
         break;
       }

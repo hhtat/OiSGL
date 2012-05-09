@@ -49,12 +49,25 @@ public class Drawer {
     this.viewportTransform.transform( a );
     this.viewportTransform.transform( b );
 
-    this.rasterizer.rasterizeLine( a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), aColor.x(), aColor.y(), aColor.z(), bColor.x(), bColor.y(), bColor.z() );
+    this.rasterizer.rasterizeLine( a.x(), a.y(), a.z(), aColor.x(), aColor.y(), aColor.z(), b.x(), b.y(), b.z(), bColor.x(), bColor.y(), bColor.z() );
   }
 
   public void drawTriangle( Vector3 a, Vector3 aColor, Vector3 b, Vector3 bColor, Vector3 c, Vector3 cColor ) {
-    this.drawLine( a, aColor, b, bColor );
-    this.drawLine( b, bColor, c, cColor );
-    this.drawLine( c, cColor, a, aColor );
+    a = this.tv3a1.set( a );
+    b = this.tv3b1.set( b );
+    c = this.tv3c1.set( c );
+
+    aColor = this.tv3a2.set( aColor );
+    bColor = this.tv3b2.set( bColor );
+    cColor = this.tv3c2.set( cColor );
+
+    // TODO clip
+
+    this.viewportTransform.transform( a );
+    this.viewportTransform.transform( b );
+    this.viewportTransform.transform( c );
+
+    this.rasterizer.rasterizeTriangle( a.x(), a.y(), a.z(), aColor.x(), aColor.y(), aColor.z(), b.x(), b.y(), b.z(), bColor.x(), bColor.y(), bColor.z(), c.x(),
+        c.y(), c.z(), cColor.x(), cColor.y(), cColor.z() );
   }
 }

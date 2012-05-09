@@ -43,10 +43,10 @@ public class Rasterizer {
     }
   }
 
-  public void rasterizeLine( double ax, double ay, double az, double bx, double by, double bz, double aRed, double aGreen, double aBlue, double bRed,
+  public void rasterizeLine( double ax, double ay, double az, double aRed, double aGreen, double aBlue, double bx, double by, double bz, double bRed,
       double bGreen, double bBlue ) {
     // TODO in the drawing loop, if x/y were integers can we do this much
-    // faster?
+    // faster? or use i/j as just add to xMin/yMin
 
     if ( ( ax != bx ) || ( ay != by ) ) {
       double xd = bx - ax;
@@ -179,6 +179,51 @@ public class Rasterizer {
         this.rasterizePoint( ax, ay, az, aRed, aGreen, aBlue );
       } else {
         this.rasterizePoint( bx, by, bz, bRed, bGreen, bBlue );
+      }
+    }
+  }
+
+  public void rasterizeTriangle( double ax, double ay, double az, double aRed, double aGreen, double aBlue, double bx, double by, double bz, double bRed,
+      double bGreen, double bBlue, double cx, double cy, double cz, double cRed, double cGreen, double cBlue ) {
+    double m11 = ax - cx;
+    double m12 = bx - cx;
+    double m21 = ay - cy;
+    double m22 = by - cy;
+
+    {
+      double det = ( m11 * m22 ) - ( m12 * m21 );
+
+      if ( det == 0.0 ) {
+        return;
+      }
+
+      double idet = 1.0 / det;
+
+      double temp = m11;
+
+      m11 = idet * m22;
+      m12 = -idet * m12;
+      m21 = -idet * m21;
+      m22 = idet * temp;
+    }
+
+    for ( int y = 0; y < this.height; y++ ) {
+      double yBiased = y - cy;
+
+      double m12YBiased = m12 * yBiased;
+      double m22YBiased = m22 * yBiased;
+
+      for ( int x = 0; x < this.width; x++ ) {
+        double xBiased = x - cx;
+
+        double u = ( m11 * xBiased ) + m12YBiased;
+        double v = ( m21 * xBiased ) + m22YBiased;
+        double w;
+
+        if ( OiSU.isInRange( u, 0.0, 1.0 ) && OiSU.isInRange( v, 0.0, 1.0 ) && OiSU.isInRange( w = 1.0 - u - v, 0.0, 1.0 ) ) {
+          this.rasterizePoint( x, y, ( u * az ) + ( v * bz ) + ( w * cz ), ( u * aRed ) + ( v * bRed ) + ( w * cRed ), ( u * aGreen ) + ( v * bGreen )
+              + ( w * cGreen ), ( u * aBlue ) + ( v * bBlue ) + ( w * cBlue ) );
+        }
       }
     }
   }
