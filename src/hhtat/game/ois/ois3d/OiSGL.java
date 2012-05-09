@@ -5,7 +5,7 @@ import hhtat.game.ois.util.OiSU;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -55,16 +55,11 @@ public class OiSGL {
 
   private Rasterizer rasterizer;
 
-  private BufferedImage image;
-  private Raster raster;
-  private byte[] rasterData;
+  private Drawer drawer;
 
-  private Vector3 tv3a1;
-  private Vector3 tv3a2;
-  private Vector3 tv3b1;
-  private Vector3 tv3b2;
-  private Vector3 tv3c1;
-  private Vector3 tv3c2;
+  private BufferedImage image;
+  private WritableRaster raster;
+  private byte[] rasterData;
 
   public OiSGL( int width, int height ) {
     this.width = width;
@@ -102,21 +97,13 @@ public class OiSGL {
       this.glClear( OiSGL.GL_COLOR_BUFFER_BIT | OiSGL.GL_DEPTH_BUFFER_BIT );
 
       this.rasterizer = new Rasterizer( this.colorBuffer, this.depthBuffer );
+      this.drawer = new Drawer( this.viewportTransform, this.rasterizer );
     }
 
     {
       this.image = new BufferedImage( width, height, BufferedImage.TYPE_3BYTE_BGR );
-      this.raster = this.image.getData();
+      this.raster = this.image.getRaster();
       this.rasterData = ( (DataBufferByte) this.raster.getDataBuffer() ).getData();
-    }
-
-    {
-      this.tv3a1 = new Vector3();
-      this.tv3a2 = new Vector3();
-      this.tv3b1 = new Vector3();
-      this.tv3b2 = new Vector3();
-      this.tv3c1 = new Vector3();
-      this.tv3c2 = new Vector3();
     }
   }
 
@@ -132,8 +119,6 @@ public class OiSGL {
         this.rasterData[ k + 2 ] = (byte) OiSU.clamp( OiSU.roundToInt( 255.0 * this.colorBuffer.data[ OiSGL.BUFFER_RED_IDX ][ i ][ j ] ), 0, 255 );
       }
     }
-
-    this.image.setData( this.raster );
 
     return this.image;
   }
@@ -326,38 +311,6 @@ public class OiSGL {
     }
   }
 
-  private void drawPoint( Vector3 a, Vector3 aColor ) {
-    a = this.tv3a1.set( a );
-    aColor = this.tv3a2.set( aColor );
-
-    // TODO clip
-
-    this.viewportTransform.transform( a );
-
-    this.rasterizer.rasterizePoint( a.x(), a.y(), a.z(), aColor.x(), aColor.y(), aColor.z() );
-  }
-
-  private void drawLine( Vector3 a, Vector3 aColor, Vector3 b, Vector3 bColor ) {
-    a = this.tv3a1.set( a );
-    b = this.tv3b1.set( b );
-
-    aColor = this.tv3a2.set( aColor );
-    bColor = this.tv3b2.set( bColor );
-
-    // TODO clip
-
-    this.viewportTransform.transform( a );
-    this.viewportTransform.transform( b );
-
-    this.rasterizer.rasterizeLine( a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), aColor.x(), aColor.y(), aColor.z(), bColor.x(), bColor.y(), bColor.z() );
-  }
-
-  private void drawTriangle( Vector3 a, Vector3 aColor, Vector3 b, Vector3 bColor, Vector3 c, Vector3 cColor ) {
-    this.drawLine( a, aColor, b, bColor );
-    this.drawLine( b, bColor, c, cColor );
-    this.drawLine( c, cColor, a, aColor );
-  }
-
   public void glVertex3( double x, double y, double z ) {
     switch ( this.currentPrimitiveMode ) {
       case OiSGL.GL_NOT_BEGUN:
@@ -368,7 +321,7 @@ public class OiSGL {
 
         this.currentTransformation.transform( a );
 
-        this.drawPoint( a, aColor );
+        this.drawer.drawPoint( a, aColor );
         break;
       }
       case OiSGL.GL_LINES: {
@@ -388,7 +341,7 @@ public class OiSGL {
           this.currentTransformation.transform( a );
           this.currentTransformation.transform( b );
 
-          this.drawLine( a, aColor, b, bColor );
+          this.drawer.drawLine( a, aColor, b, bColor );
         }
         break;
       }
@@ -412,7 +365,7 @@ public class OiSGL {
           this.currentTransformation.transform( b );
           this.currentTransformation.transform( c );
 
-          this.drawTriangle( a, aColor, b, bColor, c, cColor );
+          this.drawer.drawTriangle( a, aColor, b, bColor, c, cColor );
         }
         break;
       }
@@ -439,8 +392,8 @@ public class OiSGL {
           this.currentTransformation.transform( c );
           this.currentTransformation.transform( d );
 
-          this.drawTriangle( a, aColor, b, bColor, dColor, cColor );
-          this.drawTriangle( c, cColor, d, dColor, aColor, aColor );
+          this.drawer.drawTriangle( a, aColor, b, bColor, dColor, cColor );
+          this.drawer.drawTriangle( c, cColor, d, dColor, aColor, aColor );
         }
         break;
       }
