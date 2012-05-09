@@ -44,7 +44,8 @@ public class OiSGL {
 
   private int currentPrimitiveMode;
   private Transformation currentTransformation;
-  private ArrayList< Vertex3 > currentVertices;
+  private ArrayList< Vector3 > currentVertices;
+  private ArrayList< Vector3 > currentColors;
 
   private Vector3 clearColor;
   private double clearDepth;
@@ -57,6 +58,13 @@ public class OiSGL {
   private BufferedImage image;
   private Raster raster;
   private byte[] rasterData;
+
+  private Vector3 tv3a1;
+  private Vector3 tv3a2;
+  private Vector3 tv3b1;
+  private Vector3 tv3b2;
+  private Vector3 tv3c1;
+  private Vector3 tv3c2;
 
   public OiSGL( int width, int height ) {
     this.width = width;
@@ -76,12 +84,12 @@ public class OiSGL {
     }
 
     {
-      this.currentTransformation = new Transformation();
-
       this.currentColor = new Vector3( 1.0, 1.0, 1.0 );
 
       this.currentPrimitiveMode = OiSGL.GL_NOT_BEGUN;
-      this.currentVertices = new ArrayList< Vertex3 >();
+      this.currentTransformation = new Transformation();
+      this.currentVertices = new ArrayList< Vector3 >();
+      this.currentColors = new ArrayList< Vector3 >();
     }
 
     {
@@ -100,6 +108,15 @@ public class OiSGL {
       this.image = new BufferedImage( width, height, BufferedImage.TYPE_3BYTE_BGR );
       this.raster = this.image.getData();
       this.rasterData = ( (DataBufferByte) this.raster.getDataBuffer() ).getData();
+    }
+
+    {
+      this.tv3a1 = new Vector3();
+      this.tv3a2 = new Vector3();
+      this.tv3b1 = new Vector3();
+      this.tv3b2 = new Vector3();
+      this.tv3c1 = new Vector3();
+      this.tv3c2 = new Vector3();
     }
   }
 
@@ -309,87 +326,121 @@ public class OiSGL {
     }
   }
 
+  private void drawPoint( Vector3 a, Vector3 aColor ) {
+    a = this.tv3a1.set( a );
+    aColor = this.tv3a2.set( aColor );
+
+    // TODO clip
+
+    this.viewportTransform.transform( a );
+
+    this.rasterizer.rasterizePoint( a.x(), a.y(), a.z(), aColor.x(), aColor.y(), aColor.z() );
+  }
+
+  private void drawLine( Vector3 a, Vector3 aColor, Vector3 b, Vector3 bColor ) {
+    a = this.tv3a1.set( a );
+    b = this.tv3b1.set( b );
+
+    aColor = this.tv3a2.set( aColor );
+    bColor = this.tv3b2.set( bColor );
+
+    // TODO clip
+
+    this.viewportTransform.transform( a );
+    this.viewportTransform.transform( b );
+
+    this.rasterizer.rasterizeLine( a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), aColor.x(), aColor.y(), aColor.z(), bColor.x(), bColor.y(), bColor.z() );
+  }
+
+  private void drawTriangle( Vector3 a, Vector3 aColor, Vector3 b, Vector3 bColor, Vector3 c, Vector3 cColor ) {
+    this.drawLine( a, aColor, b, bColor );
+    this.drawLine( b, bColor, c, cColor );
+    this.drawLine( c, cColor, a, aColor );
+  }
+
   public void glVertex3( double x, double y, double z ) {
     switch ( this.currentPrimitiveMode ) {
       case OiSGL.GL_NOT_BEGUN:
         throw new IllegalStateException( "glBegin has not be called after last call to glEnd" );
       case OiSGL.GL_POINTS: {
-        Vertex3 a = (Vertex3) this.currentTransformation.transform( new Vertex3( x, y, z, this.currentColor ) );
+        Vector3 a = new Vector3( x, y, z );
+        Vector3 aColor = this.currentColor;
 
-        // TODO clip
+        this.currentTransformation.transform( a );
 
-        a = (Vertex3) this.viewportTransform.transform( a );
-
-        this.rasterizer.rasterizePoint( a.x(), a.y(), a.z(), a.color.x(), a.color.y(), a.color.z() );
+        this.drawPoint( a, aColor );
         break;
       }
       case OiSGL.GL_LINES: {
         if ( this.currentVertices.size() < 1 ) {
-          this.currentVertices.add( new Vertex3( x, y, z, this.currentColor ) );
+          this.currentVertices.add( new Vector3( x, y, z ) );
+          this.currentColors.add( this.currentColor );
         } else {
-          Vertex3 a = (Vertex3) this.currentTransformation.transform( this.currentVertices.get( 0 ) );
-          Vertex3 b = (Vertex3) this.currentTransformation.transform( new Vertex3( x, y, z, this.currentColor ) );
+          Vector3 a = this.currentVertices.get( 0 );
+          Vector3 b = new Vector3( x, y, z );
+
+          Vector3 aColor = this.currentColors.get( 0 );
+          Vector3 bColor = this.currentColor;
+
           this.currentVertices.clear();
+          this.currentColors.clear();
 
-          // TODO clip
+          this.currentTransformation.transform( a );
+          this.currentTransformation.transform( b );
 
-          a = (Vertex3) this.viewportTransform.transform( a );
-          b = (Vertex3) this.viewportTransform.transform( b );
-
-          this.rasterizer
-              .rasterizeLine( a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), a.color.x(), a.color.y(), a.color.z(), b.color.x(), b.color.y(), b.color.z() );
+          this.drawLine( a, aColor, b, bColor );
         }
         break;
       }
       case OiSGL.GL_TRIANGLES: {
         if ( this.currentVertices.size() < 2 ) {
-          this.currentVertices.add( new Vertex3( x, y, z, this.currentColor ) );
+          this.currentVertices.add( new Vector3( x, y, z ) );
+          this.currentColors.add( this.currentColor );
         } else {
-          Vertex3 a = (Vertex3) this.currentTransformation.transform( this.currentVertices.get( 0 ) );
-          Vertex3 b = (Vertex3) this.currentTransformation.transform( this.currentVertices.get( 1 ) );
-          Vertex3 c = (Vertex3) this.currentTransformation.transform( new Vertex3( x, y, z, this.currentColor ) );
+          Vector3 a = this.currentVertices.get( 0 );
+          Vector3 b = this.currentVertices.get( 1 );
+          Vector3 c = new Vector3( x, y, z );
+
+          Vector3 aColor = this.currentColors.get( 0 );
+          Vector3 bColor = this.currentColors.get( 1 );
+          Vector3 cColor = this.currentColor;
+
           this.currentVertices.clear();
+          this.currentColors.clear();
 
-          // TODO clip
+          this.currentTransformation.transform( a );
+          this.currentTransformation.transform( b );
+          this.currentTransformation.transform( c );
 
-          a = (Vertex3) this.viewportTransform.transform( a );
-          b = (Vertex3) this.viewportTransform.transform( b );
-          c = (Vertex3) this.viewportTransform.transform( c );
-
-          this.rasterizer
-              .rasterizeLine( a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), a.color.x(), a.color.y(), a.color.z(), b.color.x(), b.color.y(), b.color.z() );
-          this.rasterizer
-              .rasterizeLine( b.x(), b.y(), b.z(), c.x(), c.y(), c.z(), b.color.x(), b.color.y(), b.color.z(), c.color.x(), c.color.y(), c.color.z() );
-          this.rasterizer
-              .rasterizeLine( c.x(), c.y(), c.z(), a.x(), a.y(), a.z(), c.color.x(), c.color.y(), c.color.z(), a.color.x(), a.color.y(), a.color.z() );
+          this.drawTriangle( a, aColor, b, bColor, c, cColor );
         }
         break;
       }
       case OiSGL.GL_QUADS: {
         if ( this.currentVertices.size() < 3 ) {
-          this.currentVertices.add( new Vertex3( x, y, z, this.currentColor ) );
+          this.currentVertices.add( new Vector3( x, y, z ) );
+          this.currentColors.add( this.currentColor );
         } else {
-          Vertex3 a = (Vertex3) this.currentTransformation.transform( this.currentVertices.get( 0 ) );
-          Vertex3 b = (Vertex3) this.currentTransformation.transform( this.currentVertices.get( 1 ) );
-          Vertex3 c = (Vertex3) this.currentTransformation.transform( this.currentVertices.get( 2 ) );
-          Vertex3 d = (Vertex3) this.currentTransformation.transform( new Vertex3( x, y, z, this.currentColor ) );
+          Vector3 a = this.currentVertices.get( 0 );
+          Vector3 b = this.currentVertices.get( 1 );
+          Vector3 c = this.currentVertices.get( 2 );
+          Vector3 d = new Vector3( x, y, z );
+
+          Vector3 aColor = this.currentColors.get( 0 );
+          Vector3 bColor = this.currentColors.get( 1 );
+          Vector3 cColor = this.currentColors.get( 2 );
+          Vector3 dColor = this.currentColor;
+
           this.currentVertices.clear();
+          this.currentColors.clear();
 
-          // TODO clip
+          this.currentTransformation.transform( a );
+          this.currentTransformation.transform( b );
+          this.currentTransformation.transform( c );
+          this.currentTransformation.transform( d );
 
-          a = (Vertex3) this.viewportTransform.transform( a );
-          b = (Vertex3) this.viewportTransform.transform( b );
-          c = (Vertex3) this.viewportTransform.transform( c );
-          d = (Vertex3) this.viewportTransform.transform( d );
-
-          this.rasterizer
-              .rasterizeLine( a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), a.color.x(), a.color.y(), a.color.z(), b.color.x(), b.color.y(), b.color.z() );
-          this.rasterizer
-              .rasterizeLine( b.x(), b.y(), b.z(), c.x(), c.y(), c.z(), b.color.x(), b.color.y(), b.color.z(), c.color.x(), c.color.y(), c.color.z() );
-          this.rasterizer
-              .rasterizeLine( c.x(), c.y(), c.z(), d.x(), d.y(), d.z(), c.color.x(), c.color.y(), c.color.z(), d.color.x(), d.color.y(), d.color.z() );
-          this.rasterizer
-              .rasterizeLine( d.x(), d.y(), d.z(), a.x(), a.y(), a.z(), d.color.x(), d.color.y(), d.color.z(), a.color.x(), a.color.y(), a.color.z() );
+          this.drawTriangle( a, aColor, b, bColor, dColor, cColor );
+          this.drawTriangle( c, cColor, d, dColor, aColor, aColor );
         }
         break;
       }

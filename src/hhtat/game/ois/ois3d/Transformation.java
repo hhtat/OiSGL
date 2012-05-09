@@ -5,21 +5,21 @@ import hhtat.game.ois.math.Vector3;
 import hhtat.game.ois.math.Vector4;
 
 public class Transformation extends Matrix4 {
-  private Vector3 tmpV3;
-  private Vector4 tmpV4;
+  private Vector3 tv3;
+  private Vector4 tv4;
 
   public Transformation() {
     super( 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 );
 
-    this.tmpV3 = new Vector3();
-    this.tmpV4 = new Vector4();
+    this.tv3 = new Vector3();
+    this.tv4 = new Vector4();
   }
 
   public Transformation( Matrix4 transformation ) {
     super( transformation );
 
-    this.tmpV3 = new Vector3();
-    this.tmpV4 = new Vector4();
+    this.tv3 = new Vector3();
+    this.tv4 = new Vector4();
   }
 
   public Transformation duplicate() {
@@ -31,11 +31,11 @@ public class Transformation extends Matrix4 {
   }
 
   public Transformation rotate( double theta, double x, double y, double z ) {
-    this.tmpV3.set( x, y, z ).normalize();
+    this.tv3.set( x, y, z ).normalize();
 
-    x = this.tmpV3.x();
-    y = this.tmpV3.y();
-    z = this.tmpV3.z();
+    x = this.tv3.x();
+    y = this.tv3.y();
+    z = this.tv3.z();
 
     double cos = Math.cos( theta );
     double sin = Math.sin( theta );
@@ -124,8 +124,8 @@ public class Transformation extends Matrix4 {
   }
 
   public Vector3 transform( Vector3 vector ) {
-    this.multiply( this.tmpV4.set( vector.x(), vector.y(), vector.z(), 1.0 ) ).divide( this.tmpV4.w() );
+    this.multiply( this.tv4.set( vector.x(), vector.y(), vector.z(), 1.0 ) ).divide( this.tv4.w() );
 
-    return vector.set( this.tmpV4.x(), this.tmpV4.y(), this.tmpV4.z() );
+    return vector.set( this.tv4.x(), this.tv4.y(), this.tv4.z() );
   }
 }
