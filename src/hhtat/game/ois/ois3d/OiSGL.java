@@ -370,8 +370,6 @@ public class OiSGL {
           this.currentVertices.clear();
           this.currentColors.clear();
 
-          System.out.println( a + "\t" + b );
-
           this.currentTransformation.transform( a );
           this.currentTransformation.transform( b );
 
