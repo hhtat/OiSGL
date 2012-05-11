@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class Test {
+public class Test1 {
   private static void drawLine( Graphics g, Vector3 a, Vector3 b, Transformation viewport, Transformation projection, Transformation modelView ) {
     Vector3 aScreen = viewport.transform( projection.transform( modelView.transform( a.duplicate() ) ) );
     Vector3 bScreen = viewport.transform( projection.transform( modelView.transform( b.duplicate() ) ) );
@@ -41,7 +41,7 @@ public class Test {
     Transformation projection = new Transformation();
     Transformation modelView = new Transformation();
 
-    viewport.viewport( 0.0, height, width, -height, 0.0, 1.0 );
+    viewport.viewport( 0, height, width, -height, 0.0, 1.0 );
     // projection.orthographic( aspect * -10.0, aspect * 10.0, -10.0, 10.0,
     // -10.0, 10.0 );
     projection.frustum( aspect * -10.0, aspect * 10.0, -10.0, 10.0, 50.0, 500.0 );
@@ -58,9 +58,9 @@ public class Test {
 
       degrees += 1.0;
 
-      Test.drawLine( g, new Vector3( 0.0, 0.0, 0.0 ), new Vector3( 1.0, 0.0, 0.0 ), viewport, projection, modelView );
-      Test.drawLine( g, new Vector3( 0.0, 0.0, 0.0 ), new Vector3( 0.0, 10.0, 0.0 ), viewport, projection, modelView );
-      Test.drawLine( g, new Vector3( 0.0, 0.0, 0.0 ), new Vector3( 0.0, 0.0, 10.0 ), viewport, projection, modelView );
+      Test1.drawLine( g, new Vector3( 0.0, 0.0, 0.0 ), new Vector3( 1.0, 0.0, 0.0 ), viewport, projection, modelView );
+      Test1.drawLine( g, new Vector3( 0.0, 0.0, 0.0 ), new Vector3( 0.0, 10.0, 0.0 ), viewport, projection, modelView );
+      Test1.drawLine( g, new Vector3( 0.0, 0.0, 0.0 ), new Vector3( 0.0, 0.0, 10.0 ), viewport, projection, modelView );
 
       Graphics panelG = panel.getGraphics();
       panelG.drawImage( image, 0, 0, null );

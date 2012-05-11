@@ -52,7 +52,7 @@ public class Rasterizer {
       double xd = bx - ax;
       double yd = by - ay;
 
-      if ( Math.abs( xd ) > Math.abs( yd ) ) {
+      if ( OiSU.abs( xd ) > OiSU.abs( yd ) ) {
         double xMin, xMax;
 
         double y, dy;
@@ -174,7 +174,6 @@ public class Rasterizer {
         }
       }
     } else {
-      // TODO we can do better
       if ( this.depthTest( az, bz ) ) {
         this.rasterizePoint( ax, ay, az, aRed, aGreen, aBlue );
       } else {
@@ -185,6 +184,15 @@ public class Rasterizer {
 
   public void rasterizeTriangle( double ax, double ay, double az, double aRed, double aGreen, double aBlue, double bx, double by, double bz, double bRed,
       double bGreen, double bBlue, double cx, double cy, double cz, double cRed, double cGreen, double cBlue ) {
+    // this.rasterizeLine( ax, ay, az, aRed, aGreen, aBlue, bx, by, bz, bRed,
+    // bGreen, bBlue );
+    // this.rasterizeLine( bx, by, bz, bRed, bGreen, bBlue, cx, cy, cz, cRed,
+    // cGreen, cBlue );
+    // this.rasterizeLine( cx, cy, cz, cRed, cGreen, cBlue, ax, ay, az, aRed,
+    // aGreen, aBlue );
+
+    // TODO this barycentric conversion might not be too stable (a 3x3 system
+    // might be better)
     double m11 = ax - cx;
     double m12 = bx - cx;
     double m21 = ay - cy;

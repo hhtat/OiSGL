@@ -64,11 +64,14 @@ public class OiSGL {
     this.width = width;
     this.height = height;
 
-    this.viewportTransform = new Transformation();
+    {
+      this.viewportTransform = new Transformation();
+      this.viewportTransform.loadIdentity().viewport( 0.0, 0.0, width, height, 0.0, 1.0 );
+    }
 
     {
-      this.projectionMatrix = new Transformation();
-      this.modelViewMatrix = new Transformation();
+      this.projectionMatrix = new Transformation().loadIdentity();
+      this.modelViewMatrix = new Transformation().loadIdentity();
 
       this.projectionMatrixStack = new Stack< Transformation >();
       this.modelViewMatrixStack = new Stack< Transformation >();
@@ -180,9 +183,13 @@ public class OiSGL {
     this.currentMatrix.loadIdentity();
   }
 
-  public void glViewportAndDepthRange( double x, double y, double width, double height, double nearVal, double farVal ) {
+  public void glViewportAndDepthRange( int x, int y, int width, int height, double nearVal, double farVal ) {
     if ( this.currentPrimitiveMode != OiSGL.GL_NOT_BEGUN ) {
       throw new IllegalStateException( "glEnd has not be called for last call to glBegin" );
+    }
+
+    if ( ( width < 0 ) || ( height < 0 ) ) {
+      throw new IllegalArgumentException( "width and height cannot be negative" );
     }
 
     this.viewportTransform.loadIdentity().viewport( x, y, width, height, OiSU.clamp( nearVal, 0.0, 1.0 ), OiSU.clamp( farVal, 0.0, 1.0 ) );
@@ -191,6 +198,14 @@ public class OiSGL {
   public void glFrustum( double left, double right, double bottom, double top, double nearVal, double farVal ) {
     if ( this.currentPrimitiveMode != OiSGL.GL_NOT_BEGUN ) {
       throw new IllegalStateException( "glEnd has not be called for last call to glBegin" );
+    }
+
+    if ( ( nearVal <= 0 ) || ( farVal <= 0 ) ) {
+      throw new IllegalArgumentException( "both nearVal and farVal must be positive" );
+    }
+
+    if ( ( left == right ) || ( bottom == top ) ) {
+      throw new IllegalArgumentException( "left and right must not be the same nor can bottom and top be the same" );
     }
 
     this.currentMatrix.frustum( left, right, bottom, top, nearVal, farVal );
@@ -324,7 +339,11 @@ public class OiSGL {
     }
   }
 
-  public void glVertex3( double x, double y, double z ) {
+  public void glVertex( double x, double y ) {
+    this.glVertex( x, y, 0.0 );
+  }
+
+  public void glVertex( double x, double y, double z ) {
     switch ( this.currentPrimitiveMode ) {
       case OiSGL.GL_NOT_BEGUN:
         throw new IllegalStateException( "glBegin has not be called after last call to glEnd" );
@@ -350,6 +369,8 @@ public class OiSGL {
 
           this.currentVertices.clear();
           this.currentColors.clear();
+
+          System.out.println( a + "\t" + b );
 
           this.currentTransformation.transform( a );
           this.currentTransformation.transform( b );

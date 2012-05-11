@@ -48,11 +48,11 @@ public class Vector4 {
   }
 
   public Vector4 add( Vector4 rhs ) {
-    return this.add( this.x, this.y, this.z, this.w );
+    return this.add( rhs.x, rhs.y, rhs.z, rhs.w );
   }
 
   public Vector4 subtract( Vector4 rhs ) {
-    return this.add( -this.x, -this.y, -this.z, -this.w );
+    return this.add( -rhs.x, -rhs.y, -rhs.z, -rhs.w );
   }
 
   public double dot( double x, double y, double z, double w ) {
@@ -60,7 +60,7 @@ public class Vector4 {
   }
 
   public double dot( Vector4 rhs ) {
-    return ( this.x * this.x ) + ( this.y * this.y ) + ( this.z * this.z ) + ( this.w * this.w );
+    return ( this.x * rhs.x ) + ( this.y * rhs.y ) + ( this.z * rhs.z ) + ( this.w * rhs.w );
   }
 
   public double length() {

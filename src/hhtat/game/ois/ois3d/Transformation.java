@@ -3,23 +3,21 @@ package hhtat.game.ois.ois3d;
 import hhtat.game.ois.math.Matrix4;
 import hhtat.game.ois.math.Vector3;
 import hhtat.game.ois.math.Vector4;
+import hhtat.game.ois.util.VectorBank;
 
 public class Transformation extends Matrix4 {
-  private Vector3 tv3;
-  private Vector4 tv4;
+  private VectorBank vectorBank;
 
   public Transformation() {
-    super( 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 );
-
-    this.tv3 = new Vector3();
-    this.tv4 = new Vector4();
+    this( new Matrix4( 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ) );
   }
 
   public Transformation( Matrix4 transformation ) {
     super( transformation );
 
-    this.tv3 = new Vector3();
-    this.tv4 = new Vector4();
+    this.vectorBank = new VectorBank();
+    this.vectorBank.deposit( new Vector3() );
+    this.vectorBank.deposit( new Vector4() );
   }
 
   public Transformation duplicate() {
@@ -31,11 +29,15 @@ public class Transformation extends Matrix4 {
   }
 
   public Transformation rotate( double theta, double x, double y, double z ) {
-    this.tv3.set( x, y, z ).normalize();
+    Vector3 temp = this.vectorBank.withdrawVector3();
 
-    x = this.tv3.x();
-    y = this.tv3.y();
-    z = this.tv3.z();
+    temp.set( x, y, z ).normalize();
+
+    x = temp.x();
+    y = temp.y();
+    z = temp.z();
+
+    temp = this.vectorBank.deposit( temp );
 
     double cos = Math.cos( theta );
     double sin = Math.sin( theta );
@@ -123,9 +125,30 @@ public class Transformation extends Matrix4 {
     // @formatter:on
   }
 
-  public Vector3 transform( Vector3 vector ) {
-    this.multiply( this.tv4.set( vector.x(), vector.y(), vector.z(), 1.0 ) ).divide( this.tv4.w() );
+  public Vector4 transform( Vector4 vector ) {
+    return this.multiply( vector );
+  }
 
-    return vector.set( this.tv4.x(), this.tv4.y(), this.tv4.z() );
+  public Vector3 transform( Vector3 vector ) {
+    Vector4 temp = this.vectorBank.withdrawVector4();
+
+    this.multiply( temp.set( vector.x(), vector.y(), vector.z(), 1.0 ) );
+
+    double x = temp.x();
+    double y = temp.y();
+    double z = temp.z();
+    double w = temp.w();
+
+    temp = this.vectorBank.deposit( temp );
+
+    if ( w > 0.0 ) {
+      return vector.set( x / w, y / w, z / w );
+    } else if ( w < 0.0 ) {
+      // TODO Fix
+      return vector.set( x / w, y / w, z / w );
+    } else {
+      // TODO Fix
+      return vector.set( x / w, y / w, z / w );
+    }
   }
 }

@@ -9,7 +9,7 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class Test4 {
+public class Test3OiSGL {
   public static void main( String[] args ) throws InterruptedException {
     int width = 640;
     int height = 480;
@@ -33,7 +33,7 @@ public class Test4 {
 
     gl.glMatrixMode( OiSGL.GL_PROJECTION );
     gl.glLoadIdentity();
-    gl.gluPerspective( 40.0, aspect, 10.0, 100.0 );
+    gl.gluPerspective( 40.0, aspect, 1.0, 1000000.0 );
 
     double degrees = 0.0;
 
@@ -84,9 +84,7 @@ public class Test4 {
       gl.glMatrixMode( OiSGL.GL_MODELVIEW );
       gl.glLoadIdentity();
       gl.glTranslate( 0.0, 0.0, -50.0 );
-      gl.glRotate( 0.2 * degrees, 1.0, 0.0, 0.0 );
-      gl.glRotate( 0.4 * degrees, 0.0, 1.0, 0.0 );
-      gl.glRotate( 0.8 * degrees, 0.0, 0.0, 1.0 );
+      gl.glRotate( degrees, 0.0, 1.0, 0.0 );
 
       degrees += 1.0;
 
@@ -99,7 +97,7 @@ public class Test4 {
 
       for ( Vector3 vector : vectors ) {
         gl.glColor( vector.x(), vector.y(), vector.z() );
-        gl.glVertex3( vector.x(), vector.y(), vector.z() );
+        gl.glVertex( vector.x(), vector.y(), vector.z() );
       }
 
       gl.glEnd();
@@ -111,16 +109,36 @@ public class Test4 {
       gl.glBegin( OiSGL.GL_LINES );
 
       gl.glColor( 1.0, 0.0, 0.0 );
-      gl.glVertex3( 0.0, 0.0, 0.0 );
-      gl.glVertex3( 20.0, 0.0, 0.0 );
+      gl.glVertex( 0.0, 0.0, 0.0 );
+      gl.glVertex( 10.0, 0.0, 0.0 );
 
       gl.glColor( 0.0, 1.0, 0.0 );
-      gl.glVertex3( 0.0, 0.0, 0.0 );
-      gl.glVertex3( 0.0, 20.0, 0.0 );
+      gl.glVertex( 0.0, 0.0, 0.0 );
+      gl.glVertex( 0.0, 10.0, 0.0 );
 
       gl.glColor( 0.0, 0.0, 1.0 );
-      gl.glVertex3( 0.0, 0.0, 0.0 );
-      gl.glVertex3( 0.0, 0.0, 20.0 );
+      gl.glVertex( 0.0, 0.0, 0.0 );
+      gl.glVertex( 0.0, 0.0, 10.0 );
+
+      gl.glColor( 1.0, 1.0, 1.0 );
+
+      gl.glVertex( 0.0, 0.0, 0.0 );
+      gl.glVertex( 100.0, 0.0, 0.0 );
+      gl.glVertex( 0.0, 0.0, 10.0 );
+      gl.glVertex( 100.0, 0.0, 10.0 );
+      gl.glVertex( 0.0, 10.0, 0.0 );
+      gl.glVertex( 100.0, 10.0, 0.0 );
+      gl.glVertex( 0.0, 10.0, 10.0 );
+      gl.glVertex( 100.0, 10.0, 10.0 );
+
+      gl.glVertex( 100.0, 0.0, 0.0 );
+      gl.glVertex( 100.0, 0.0, 10.0 );
+      gl.glVertex( 100.0, 0.0, 10.0 );
+      gl.glVertex( 100.0, 10.0, 10.0 );
+      gl.glVertex( 100.0, 10.0, 10.0 );
+      gl.glVertex( 100.0, 10.0, 0.0 );
+      gl.glVertex( 100.0, 10.0, 0.0 );
+      gl.glVertex( 100.0, 0.0, 0.0 );
 
       gl.glEnd();
 

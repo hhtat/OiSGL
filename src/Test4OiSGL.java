@@ -1,20 +1,15 @@
-import hhtat.game.ois.math.Vector3;
 import hhtat.game.ois.ois3d.OiSGL;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class Test3 {
+public class Test4OiSGL {
   public static void main( String[] args ) throws InterruptedException {
     int width = 640;
     int height = 480;
-
-    double aspect = (double) width / (double) height;
 
     JFrame frame = new JFrame( "OiSGL" );
     frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
@@ -33,63 +28,71 @@ public class Test3 {
 
     gl.glMatrixMode( OiSGL.GL_PROJECTION );
     gl.glLoadIdentity();
-    // gl.glOrtho( aspect * -10.0, aspect * 10.0, -10.0, 10.0, -10.0, 10.0 );
-    // gl.glFrustum( aspect * -10.0, aspect * 10.0, -10.0, 10.0, 50.0, 500.0 );
-    gl.gluPerspective( 40.0, aspect, 10.0, 100.0 );
-
-    double degrees = 0.0;
+    gl.gluOrtho2D( 0.0, width, 0.0, height );
 
     int framesSinceLastReport = 0;
     long lastReportTimeMillis = System.currentTimeMillis();
 
-    List< Vector3 > vectors = new LinkedList< Vector3 >();
-
-    for ( int i = 0; i < 10000; i++ ) {
-      vectors.add( new Vector3( Math.random(), Math.random(), Math.random() ) );
-    }
+    int state = 0;
 
     while ( true ) {
       gl.glClear( OiSGL.GL_COLOR_BUFFER_BIT | OiSGL.GL_DEPTH_BUFFER_BIT );
 
       gl.glMatrixMode( OiSGL.GL_MODELVIEW );
       gl.glLoadIdentity();
-      gl.glTranslate( 0.0, 0.0, -50.0 );
-
-      gl.glRotate( 0.2 * degrees, 1.0, 0.0, 0.0 );
-      gl.glRotate( 0.4 * degrees, 0.0, 1.0, 0.0 );
-      gl.glRotate( 0.8 * degrees, 0.0, 0.0, 1.0 );
-      gl.glTranslate( -5.0, -5.0, -5.0 );
-
-      degrees += 1.0;
-
-      gl.glBegin( OiSGL.GL_LINES );
-
-      for ( Vector3 vector : vectors ) {
-        gl.glColor( vector.x(), vector.y(), vector.z() );
-        gl.glVertex3( 10.0 * vector.x(), 10.0 * vector.y(), 10.0 * vector.z() );
-      }
-
-      gl.glEnd();
-
-      gl.glBegin( OiSGL.GL_LINES );
-
-      gl.glColor( 1.0, 0.0, 0.0 );
-      gl.glVertex3( 0.0, 0.0, 0.0 );
-      gl.glVertex3( 20.0, 0.0, 0.0 );
 
       gl.glColor( 0.0, 1.0, 0.0 );
-      gl.glVertex3( 0.0, 0.0, 0.0 );
-      gl.glVertex3( 0.0, 20.0, 0.0 );
 
-      gl.glColor( 0.0, 0.0, 1.0 );
-      gl.glVertex3( 0.0, 0.0, 0.0 );
-      gl.glVertex3( 0.0, 0.0, 20.0 );
+      switch ( state ) {
+        case 0:
+          gl.glBegin( OiSGL.GL_LINES );
 
-      gl.glEnd();
+          gl.glVertex( 0, 0 );
+          gl.glVertex( 0, height - 1 );
+
+          gl.glVertex( 0, height - 1 );
+          gl.glVertex( width - 1, height - 1 );
+
+          gl.glVertex( width - 1, height - 1 );
+          gl.glVertex( width - 1, 0 );
+
+          gl.glVertex( width - 1, 0 );
+          gl.glVertex( 0, 0 );
+
+          gl.glEnd();
+          break;
+        case 1:
+          gl.glBegin( OiSGL.GL_LINES );
+
+          for ( int x = 0; x < width; x += 2 ) {
+            gl.glVertex( x, 0 );
+            gl.glVertex( x, height - 1 );
+          }
+
+          gl.glEnd();
+          break;
+        case 2:
+          gl.glBegin( OiSGL.GL_LINES );
+
+          for ( int y = 0; y < height; y += 2 ) {
+            gl.glVertex( 0, y );
+            gl.glVertex( width - 1, y );
+          }
+
+          gl.glEnd();
+          break;
+        default:
+          state = 0;
+          continue;
+      }
+
+      state++;
 
       Graphics g = panel.getGraphics();
       g.drawImage( gl.getImage(), 0, 0, null );
       g.dispose();
+
+      Thread.sleep( 1000 );
 
       if ( ++framesSinceLastReport == 100 ) {
         long currentTimeMillis = System.currentTimeMillis();

@@ -1,6 +1,10 @@
 package hhtat.game.ois.util;
 
 public class OiSU {
+  public static double abs( double value ) {
+    return value < 0.0 ? -value : value;
+  }
+
   public static int roundToInt( double value ) {
     return (int) ( value < 0.0 ? value - 0.5 : value + 0.5 );
   }
