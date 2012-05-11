@@ -3,11 +3,16 @@ package hhtat.game.ois.ois3d;
 import hhtat.game.ois.math.Matrix4;
 import hhtat.game.ois.math.Vector3;
 import hhtat.game.ois.math.Vector4;
-import hhtat.game.ois.util.OiSBank;
 
 public class Transformation extends Matrix4 {
+  private Vector3 tmpVector3;
+  private Vector4 tmpVector4;
+
   public Transformation() {
     this( new Matrix4( 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ) );
+
+    this.tmpVector3 = new Vector3();
+    this.tmpVector4 = new Vector4();
   }
 
   public Transformation( Matrix4 transformation ) {
@@ -23,15 +28,11 @@ public class Transformation extends Matrix4 {
   }
 
   public Transformation rotate( double theta, double x, double y, double z ) {
-    Vector3 temp = OiSBank.withdrawVector3();
+    this.tmpVector3.set( x, y, z ).normalize();
 
-    temp.set( x, y, z ).normalize();
-
-    x = temp.x();
-    y = temp.y();
-    z = temp.z();
-
-    temp = OiSBank.deposit( temp );
+    x = this.tmpVector3.x();
+    y = this.tmpVector3.y();
+    z = this.tmpVector3.z();
 
     double cos = Math.cos( theta );
     double sin = Math.sin( theta );
@@ -124,16 +125,6 @@ public class Transformation extends Matrix4 {
   }
 
   public Vector3 transform( Vector3 vector ) {
-    Vector4 temp = OiSBank.withdrawVector4();
-
-    this.multiply( temp.set( vector.x(), vector.y(), vector.z(), 1.0 ) ).divide( temp.w() );
-
-    double x = temp.x();
-    double y = temp.y();
-    double z = temp.z();
-
-    temp = OiSBank.deposit( temp );
-
-    return vector.set( x, y, z );
+    return vector.set( this.multiply( this.tmpVector4.set( vector, 1.0 ) ).divide( this.tmpVector4.w() ) );
   }
 }

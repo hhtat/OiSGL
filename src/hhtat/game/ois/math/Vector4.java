@@ -21,6 +21,10 @@ public class Vector4 {
     this( vector.x, vector.y, vector.z, vector.w );
   }
 
+  public Vector4( Vector3 vector, double w ) {
+    this( vector.x, vector.y, vector.z, w );
+  }
+
   public Vector4 multiply( double scalar ) {
     this.x *= scalar;
     this.y *= scalar;
@@ -92,6 +96,10 @@ public class Vector4 {
 
   public Vector4 set( Vector4 vector ) {
     return this.set( vector.x, vector.y, vector.z, vector.w );
+  }
+
+  public Vector4 set( Vector3 vector, double w ) {
+    return this.set( vector.x, vector.y, vector.z, w );
   }
 
   public double x() {

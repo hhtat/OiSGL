@@ -18,6 +18,10 @@ public class Vector3 {
   public Vector3( Vector3 vector ) {
     this( vector.x, vector.y, vector.z );
   }
+  
+  public Vector3( Vector4 vector ) {
+    this( vector.x, vector.y, vector.z );
+  }
 
   public Vector3 multiply( double scalar ) {
     this.x *= scalar;
@@ -94,6 +98,10 @@ public class Vector3 {
   }
 
   public Vector3 set( Vector3 vector ) {
+    return this.set( vector.x, vector.y, vector.z );
+  }
+  
+  public Vector3 set( Vector4 vector ) {
     return this.set( vector.x, vector.y, vector.z );
   }
 
