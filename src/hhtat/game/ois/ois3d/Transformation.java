@@ -126,23 +126,14 @@ public class Transformation extends Matrix4 {
   public Vector3 transform( Vector3 vector ) {
     Vector4 temp = OiSBank.withdrawVector4();
 
-    this.multiply( temp.set( vector.x(), vector.y(), vector.z(), 1.0 ) );
+    this.multiply( temp.set( vector.x(), vector.y(), vector.z(), 1.0 ) ).divide( temp.w() );
 
     double x = temp.x();
     double y = temp.y();
     double z = temp.z();
-    double w = temp.w();
 
     temp = OiSBank.deposit( temp );
 
-    if ( w > 0.0 ) {
-      return vector.set( x / w, y / w, z / w );
-    } else if ( w < 0.0 ) {
-      // TODO Fix
-      return vector.set( x / w, y / w, z / w );
-    } else {
-      // TODO Fix
-      return vector.set( x / w, y / w, z / w );
-    }
+    return vector.set( x, y, z );
   }
 }
