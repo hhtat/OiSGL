@@ -1,6 +1,7 @@
 package hhtat.game.ois.ois3d;
 
 import hhtat.game.ois.math.Vector3;
+import hhtat.game.ois.math.Vector4;
 import hhtat.game.ois.util.OiSU;
 
 import java.awt.image.BufferedImage;
@@ -29,8 +30,6 @@ public class OiSGL {
   private int width;
   private int height;
 
-  private Transformation viewportTransform;
-
   private Transformation projectionMatrix;
   private Transformation modelViewMatrix;
 
@@ -43,7 +42,7 @@ public class OiSGL {
 
   private int currentPrimitiveMode;
   private Transformation currentTransformation;
-  private ArrayList< Vector3 > currentVertices;
+  private ArrayList< Vector4 > currentVertices;
   private ArrayList< Vector3 > currentColors;
 
   private Vector3 clearColor;
@@ -52,9 +51,10 @@ public class OiSGL {
   private Buffer3 colorBuffer;
   private Buffer1 depthBuffer;
 
+  private Clipper clipper;
   private Rasterizer rasterizer;
 
-  private Drawer drawer;
+  private Viewport viewport;
 
   private BufferedImage image;
   private WritableRaster raster;
@@ -63,11 +63,6 @@ public class OiSGL {
   public OiSGL( int width, int height ) {
     this.width = width;
     this.height = height;
-
-    {
-      this.viewportTransform = new Transformation();
-      this.viewportTransform.loadIdentity().viewport( 0.0, 0.0, width, height, 0.0, 1.0 );
-    }
 
     {
       this.projectionMatrix = new Transformation().loadIdentity();
@@ -84,7 +79,7 @@ public class OiSGL {
 
       this.currentPrimitiveMode = OiSGL.GL_NOT_BEGUN;
       this.currentTransformation = new Transformation();
-      this.currentVertices = new ArrayList< Vector3 >();
+      this.currentVertices = new ArrayList< Vector4 >();
       this.currentColors = new ArrayList< Vector3 >();
     }
 
@@ -97,8 +92,10 @@ public class OiSGL {
 
       this.glClear( OiSGL.GL_COLOR_BUFFER_BIT | OiSGL.GL_DEPTH_BUFFER_BIT );
 
+      this.clipper = new Clipper();
       this.rasterizer = new Rasterizer( this.colorBuffer, this.depthBuffer );
-      this.drawer = new Drawer( this.viewportTransform, this.rasterizer );
+
+      this.viewport = new Viewport( width, height, this.clipper, this.rasterizer );
     }
 
     {
@@ -183,7 +180,7 @@ public class OiSGL {
     this.currentMatrix.loadIdentity();
   }
 
-  public void glViewportAndDepthRange( int x, int y, int width, int height, double nearVal, double farVal ) {
+  public void glViewport( int x, int y, int width, int height ) {
     if ( this.currentPrimitiveMode != OiSGL.GL_NOT_BEGUN ) {
       throw new IllegalStateException( "glEnd has not be called for last call to glBegin" );
     }
@@ -192,7 +189,15 @@ public class OiSGL {
       throw new IllegalArgumentException( "width and height cannot be negative" );
     }
 
-    this.viewportTransform.loadIdentity().viewport( x, y, width, height, OiSU.clamp( nearVal, 0.0, 1.0 ), OiSU.clamp( farVal, 0.0, 1.0 ) );
+    this.viewport.setViewport( x, y, width, height );
+  }
+
+  public void glDepthRange( double nearVal, double farVal ) {
+    if ( this.currentPrimitiveMode != OiSGL.GL_NOT_BEGUN ) {
+      throw new IllegalStateException( "glEnd has not be called for last call to glBegin" );
+    }
+
+    this.viewport.setDepthRange( OiSU.clamp( nearVal, 0.0, 1.0 ), OiSU.clamp( farVal, 0.0, 1.0 ) );
   }
 
   public void glFrustum( double left, double right, double bottom, double top, double nearVal, double farVal ) {
@@ -348,21 +353,21 @@ public class OiSGL {
       case OiSGL.GL_NOT_BEGUN:
         throw new IllegalStateException( "glBegin has not be called after last call to glEnd" );
       case OiSGL.GL_POINTS: {
-        Vector3 a = new Vector3( x, y, z );
+        Vector4 a = new Vector4( x, y, z, 1.0 );
         Vector3 aColor = this.currentColor;
 
         this.currentTransformation.transform( a );
 
-        this.drawer.drawPoint( a, aColor );
+        this.viewport.drawPoint( a, aColor );
         break;
       }
       case OiSGL.GL_LINES: {
         if ( this.currentVertices.size() < 1 ) {
-          this.currentVertices.add( new Vector3( x, y, z ) );
+          this.currentVertices.add( new Vector4( x, y, z, 1.0 ) );
           this.currentColors.add( this.currentColor );
         } else {
-          Vector3 a = this.currentVertices.get( 0 );
-          Vector3 b = new Vector3( x, y, z );
+          Vector4 a = this.currentVertices.get( 0 );
+          Vector4 b = new Vector4( x, y, z, 1.0 );
 
           Vector3 aColor = this.currentColors.get( 0 );
           Vector3 bColor = this.currentColor;
@@ -373,18 +378,18 @@ public class OiSGL {
           this.currentTransformation.transform( a );
           this.currentTransformation.transform( b );
 
-          this.drawer.drawLine( a, aColor, b, bColor );
+          this.viewport.drawLine( a, aColor, b, bColor );
         }
         break;
       }
       case OiSGL.GL_TRIANGLES: {
         if ( this.currentVertices.size() < 2 ) {
-          this.currentVertices.add( new Vector3( x, y, z ) );
+          this.currentVertices.add( new Vector4( x, y, z, 1.0 ) );
           this.currentColors.add( this.currentColor );
         } else {
-          Vector3 a = this.currentVertices.get( 0 );
-          Vector3 b = this.currentVertices.get( 1 );
-          Vector3 c = new Vector3( x, y, z );
+          Vector4 a = this.currentVertices.get( 0 );
+          Vector4 b = this.currentVertices.get( 1 );
+          Vector4 c = new Vector4( x, y, z, 1.0 );
 
           Vector3 aColor = this.currentColors.get( 0 );
           Vector3 bColor = this.currentColors.get( 1 );
@@ -397,19 +402,19 @@ public class OiSGL {
           this.currentTransformation.transform( b );
           this.currentTransformation.transform( c );
 
-          this.drawer.drawTriangle( a, aColor, b, bColor, c, cColor );
+          this.viewport.drawTriangle( a, aColor, b, bColor, c, cColor );
         }
         break;
       }
       case OiSGL.GL_QUADS: {
         if ( this.currentVertices.size() < 3 ) {
-          this.currentVertices.add( new Vector3( x, y, z ) );
+          this.currentVertices.add( new Vector4( x, y, z, 1.0 ) );
           this.currentColors.add( this.currentColor );
         } else {
-          Vector3 a = this.currentVertices.get( 0 );
-          Vector3 b = this.currentVertices.get( 1 );
-          Vector3 c = this.currentVertices.get( 2 );
-          Vector3 d = new Vector3( x, y, z );
+          Vector4 a = this.currentVertices.get( 0 );
+          Vector4 b = this.currentVertices.get( 1 );
+          Vector4 c = this.currentVertices.get( 2 );
+          Vector4 d = new Vector4( x, y, z, 1.0 );
 
           Vector3 aColor = this.currentColors.get( 0 );
           Vector3 bColor = this.currentColors.get( 1 );
@@ -424,8 +429,8 @@ public class OiSGL {
           this.currentTransformation.transform( c );
           this.currentTransformation.transform( d );
 
-          this.drawer.drawTriangle( a, aColor, b, bColor, c, cColor );
-          this.drawer.drawTriangle( c, cColor, d, dColor, a, aColor );
+          this.viewport.drawTriangle( a, aColor, b, bColor, c, cColor );
+          this.viewport.drawTriangle( c, cColor, d, dColor, a, aColor );
         }
         break;
       }

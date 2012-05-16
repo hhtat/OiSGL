@@ -18,9 +18,17 @@ public class Vector3 {
   public Vector3( Vector3 vector ) {
     this( vector.x, vector.y, vector.z );
   }
-  
+
   public Vector3( Vector4 vector ) {
     this( vector.x, vector.y, vector.z );
+  }
+
+  public Vector3 negate() {
+    this.x = -this.x;
+    this.y = -this.y;
+    this.z = -this.z;
+
+    return this;
   }
 
   public Vector3 multiply( double scalar ) {
@@ -33,7 +41,7 @@ public class Vector3 {
 
   public Vector3 divide( double scalar ) {
     if ( scalar == 0.0 ) {
-      throw new IllegalArgumentException( "cannot divide by zero" );
+      throw new ArithmeticException( "cannot divide by zero" );
     }
 
     return this.multiply( 1.0 / scalar );
@@ -53,6 +61,10 @@ public class Vector3 {
 
   public Vector3 subtract( Vector3 rhs ) {
     return this.add( -rhs.x, -rhs.y, -rhs.z );
+  }
+
+  public Vector3 add( double scalar, Vector3 rhs ) {
+    return this.add( scalar * rhs.x, scalar * rhs.y, scalar * rhs.z );
   }
 
   public double dot( double x, double y, double z ) {
@@ -100,7 +112,7 @@ public class Vector3 {
   public Vector3 set( Vector3 vector ) {
     return this.set( vector.x, vector.y, vector.z );
   }
-  
+
   public Vector3 set( Vector4 vector ) {
     return this.set( vector.x, vector.y, vector.z );
   }

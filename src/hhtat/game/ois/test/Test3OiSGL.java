@@ -1,3 +1,5 @@
+package hhtat.game.ois.test;
+
 import hhtat.game.ois.math.Vector3;
 import hhtat.game.ois.ois3d.OiSGL;
 
@@ -29,7 +31,7 @@ public class Test3OiSGL {
 
     OiSGL gl = new OiSGL( width, height );
 
-    gl.glViewportAndDepthRange( 0, 0, width, height, 0.0, 1.0 );
+    gl.glViewport( 0, 0, width, height );
 
     gl.glMatrixMode( OiSGL.GL_PROJECTION );
     gl.glLoadIdentity();

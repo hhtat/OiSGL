@@ -25,6 +25,15 @@ public class Vector4 {
     this( vector.x, vector.y, vector.z, w );
   }
 
+  public Vector4 negate() {
+    this.x = -this.x;
+    this.y = -this.y;
+    this.z = -this.z;
+    this.w = -this.w;
+
+    return this;
+  }
+
   public Vector4 multiply( double scalar ) {
     this.x *= scalar;
     this.y *= scalar;
@@ -36,7 +45,7 @@ public class Vector4 {
 
   public Vector4 divide( double scalar ) {
     if ( scalar == 0.0 ) {
-      throw new IllegalArgumentException( "cannot divide by zero" );
+      throw new ArithmeticException( "cannot divide by zero" );
     }
 
     return this.multiply( 1.0 / scalar );
@@ -57,6 +66,10 @@ public class Vector4 {
 
   public Vector4 subtract( Vector4 rhs ) {
     return this.add( -rhs.x, -rhs.y, -rhs.z, -rhs.w );
+  }
+
+  public Vector4 add( double scalar, Vector4 rhs ) {
+    return this.add( scalar * rhs.x, scalar * rhs.y, scalar * rhs.z, scalar * rhs.w );
   }
 
   public double dot( double x, double y, double z, double w ) {
